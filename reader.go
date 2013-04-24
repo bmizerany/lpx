@@ -74,6 +74,8 @@ func (r *Reader) Next() bool {
 			}
 			return false
 		}
+	} else {
+		r.bytes = nil
 	}
 	return true
 }
