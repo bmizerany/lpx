@@ -12,9 +12,11 @@ func BenchmarkNext(b *testing.B) {
 `
 	b.StopTimer()
 	r := NewReader(bufio.NewReader(bytes.NewBufferString(data)))
+	b.SetBytes(int64(len(data)))
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		for r.Next() {
 		}
 	}
+	b.StopTimer()
 }
