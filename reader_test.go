@@ -3,7 +3,6 @@ package lpx
 import (
 	"bufio"
 	"bytes"
-	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -23,11 +22,7 @@ func TestReader(t *testing.T) {
 		t.Errorf("want %q, got %q", w, r.Header())
 	}
 
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		t.Error(err)
-	}
-	if g := string(b); g != "Hi from Go\n" {
+	if g := string(r.Bytes()); g != "Hi from Go\n" {
 		t.Errorf("want %q, got %q", g, "Hi from Go\n")
 	}
 	if r.Err() != nil {
@@ -43,11 +38,7 @@ func TestReader(t *testing.T) {
 		t.Errorf("want %q, got %q", w, r.Header())
 	}
 
-	b, err = ioutil.ReadAll(r)
-	if err != nil {
-		t.Error(err)
-	}
-	if g := string(b); g != "Hi from Py\n" {
+	if g := string(r.Bytes()); g != "Hi from Py\n" {
 		t.Errorf("want %q, got %q", g, "Hi from Py\n")
 	}
 	if r.Err() != nil {

@@ -22,11 +22,12 @@ type Header struct {
 // advances to the next entry (including the first), and then can be treated
 // as an io.Reader to access the packages payload.
 type Reader struct {
-	r   BytesReader
-	b   io.Reader
-	hdr *Header
-	err error
-	n   int64
+	r     BytesReader
+	b     io.Reader
+	hdr   *Header
+	err   error
+	n     int64
+	bytes []byte
 }
 
 // NewReader creates a new Reader reading from r.
@@ -36,33 +37,54 @@ func NewReader(r BytesReader) *Reader {
 
 // Next advances to the next entry in the stream.
 func (r *Reader) Next() bool {
+	if r.err != nil {
+		return false
+	}
+
+	// length
 	var l []byte
 	r.field(&l) // message length
+	if r.err != nil {
+		return false
+	}
+
 	r.n, r.err = strconv.ParseInt(string(l), 10, 64)
 	if r.err != nil {
 		return false
 	}
+
+	// header fields
 	r.field(nil)         // PRI/VERSION
 	r.field(&r.hdr.Time) // TIMESTAMP
 	r.field(nil)         // HOSTNAME
 	r.field(&r.hdr.Name) // APP-NAME
 	r.field(nil)         // PROCID
 	r.field(nil)         // MSGID
-	r.b = io.LimitReader(r.r, r.n)
+	if r.err != nil {
+		return false
+	}
+
+	// payload
+	if r.n > 0 {
+		r.bytes = make([]byte, r.n)
+		_, r.err = io.ReadFull(r.r, r.bytes)
+		if r.err != nil {
+			if r.err == io.EOF {
+				r.err = io.ErrUnexpectedEOF
+			}
+			return false
+		}
+	}
 	return true
+}
+
+func (r *Reader) Bytes() []byte {
+	return r.bytes
 }
 
 // Header returns the current entries decoded header.
 func (r *Reader) Header() *Header {
 	return r.hdr
-}
-
-// Read reads from the current entries payload. It returns 0, io.EOF when it
-// reaches the end of the entries payload, until Next is called to advance the
-// entry.
-func (r *Reader) Read(b []byte) (n int, err error) {
-	n, r.err = r.b.Read(b)
-	return n, r.err
 }
 
 // Err returns the first non-EOF error that was encountered by the Reader.
