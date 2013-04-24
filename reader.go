@@ -78,6 +78,7 @@ func (r *Reader) Next() bool {
 	return true
 }
 
+// Bytes returns the message body.
 func (r *Reader) Bytes() []byte {
 	return r.bytes
 }
