@@ -14,8 +14,12 @@ type BytesReader interface {
 // A Header represents a single header in a logplex entry. All fields are
 // popluated.
 type Header struct {
-	Time []byte
-	Name []byte
+	PrivalVersion []byte
+	Time          []byte
+	Hostname      []byte
+	Name          []byte
+	Procid        []byte
+	Msgid         []byte
 }
 
 // A Reader provides sequential access to logplex packages. The Next method
@@ -54,12 +58,12 @@ func (r *Reader) Next() bool {
 	}
 
 	// header fields
-	r.field(nil)         // PRI/VERSION
-	r.field(&r.hdr.Time) // TIMESTAMP
-	r.field(nil)         // HOSTNAME
-	r.field(&r.hdr.Name) // APP-NAME
-	r.field(nil)         // PROCID
-	r.field(nil)         // MSGID
+	r.field(&r.hdr.PrivalVersion) // PRI/VERSION
+	r.field(&r.hdr.Time)          // TIMESTAMP
+	r.field(&r.hdr.Hostname)      // HOSTNAME
+	r.field(&r.hdr.Name)          // APP-NAME
+	r.field(&r.hdr.Procid)        // PROCID
+	r.field(&r.hdr.Msgid)         // MSGID
 	if r.err != nil {
 		return false
 	}
